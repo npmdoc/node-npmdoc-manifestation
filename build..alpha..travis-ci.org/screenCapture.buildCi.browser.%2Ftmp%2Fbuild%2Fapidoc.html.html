@@ -1,0 +1,306 @@
+<html><head></head><body><div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a href="https://github.com/patrickkettner/manifestation#readme">manifestation (v2.0.9)</a>
+</h1>
+<h4>Generate a Web App Manifest form your existing HTML</h4>
+<div class="apidocSectionDiv"><a href="#apidoc.tableOfContents" id="apidoc.tableOfContents"><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.manifestation">module manifestation</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.manifestation.manifestation">
+            function <span class="apidocSignatureSpan"></span>manifestation
+            <span class="apidocSignatureSpan">(opts, callback)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <span class="apidocSignatureSpan">object <span class="apidocSignatureSpan">manifestation.</span>utils</span>
+
+        </li>
+
+    </ol></li>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.manifestation.utils">module manifestation.utils</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.manifestation.utils.realLength">
+            function <span class="apidocSignatureSpan">manifestation.utils.</span>realLength
+            <span class="apidocSignatureSpan">(str)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.manifestation.utils.toArrayBuffer">
+            function <span class="apidocSignatureSpan">manifestation.utils.</span>toArrayBuffer
+            <span class="apidocSignatureSpan">(buffer)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.manifestation.utils.toBuffer">
+            function <span class="apidocSignatureSpan">manifestation.utils.</span>toBuffer
+            <span class="apidocSignatureSpan">(ab)</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.manifestation" id="apidoc.module.manifestation">module manifestation</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.manifestation.manifestation" id="apidoc.element.manifestation.manifestation">
+        function <span class="apidocSignatureSpan"></span>manifestation
+        <span class="apidocSignatureSpan">(opts, callback)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">(opts, callback) =&gt; {
+
+  // we just want to do all of our work off of an HTML string, so if we are
+  // given a URL, go and download it, then restart with the result
+
+  if (!opts.html &amp;&amp; opts.url) {
+    Request({
+      url: opts.url,
+      headers: {
+        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2763.0
+ Safari/537.36'
+      }
+    }, (err, response, body) =&gt; {
+
+      if (err) {
+        return callback(err);
+      }
+
+      opts.url = response.request.href;
+
+      if (!body.length) {
+        callback(new Error('empty body recieved for ' + opts.url + '. nothing to build from.'));
+      }
+
+      Manifestation({ url: opts.url, html: body }, callback);
+    });
+  }
+  else if (opts.html) {
+    // we have the url, and the html - lets do this thing
+    const manifest = {};
+
+    const funcs = [
+      'Dir',
+      'Lang',
+      'Name',
+      'Icons',
+      'Scope',
+      'Display',
+      'Start_url',
+      'Short_name',
+      'Theme_color',
+      'Description',
+      'Orientation',
+      'Background_color',
+      'Related_applications',
+      'Prefer_related_applications'
+    ].map((name) =&gt; {
+
+      return (cb) =&gt; {
+
+        require('./scrapers/' + name.toLowerCase())(opts, (e, r) =&gt; {
+
+          manifest[name.toLowerCase()] = r;
+          cb(e, r);
+        });
+      };
+    });
+
+    Async.parallel(funcs, (e) =&gt; callback(e, manifest) );
+
+  }
+  else {
+    callback(new Error('Need a URL or HTML in order to work'));
+  }
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+
+
+</div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.manifestation.utils" id="apidoc.module.manifestation.utils">module manifestation.utils</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.manifestation.utils.realLength" id="apidoc.element.manifestation.utils.realLength">
+        function <span class="apidocSignatureSpan">manifestation.utils.</span>realLength
+        <span class="apidocSignatureSpan">(str)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">(str) =&gt; Punycode.ucs2.decode(StripCombiningMarks(str)).length</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+const appLinkName = $('meta[property="al:ios:app_name"], meta[property="al:android:app_name"]').attr
+('content');
+const ogSiteName = $('meta[property="og:site_name"]').attr('content');
+const schemaName = $('meta[itemprop="name"]').attr('content');
+const title = $('title').text();
+
+let name = appName || appLinkName || schemaName || ogSiteName || title;
+
+if (Util.<span class="apidocCodeKeywordSpan">realLength</span>(name) &gt; 45) {
+  // name has a max length of 45 characters. if we are greater than that, strip
+  // down to 44 chars, and add a unicode ellipsis
+  name = name.match(XRegExp('(\\pS|\\p{L}\\p{M}|[A-Za-z0-9\\s]|[\\!\\"\\#\\$\\%\\&amp;\'\\(\\)\\*\\+\\,\\-\\.\\/\\:\\;\\&lt;\\=\\&gt;\\?\\@\\[\\]\\^\\_\\{\\|\\}\\~]){0,44}', 'xA'))[0] + 'â€¦';
+}
+
+if (callback) {
+  callback(null, name);
+...</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.manifestation.utils.toArrayBuffer" id="apidoc.element.manifestation.utils.toArrayBuffer">
+        function <span class="apidocSignatureSpan">manifestation.utils.</span>toArrayBuffer
+        <span class="apidocSignatureSpan">(buffer)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">(buffer) =&gt; {
+
+  const ab = new ArrayBuffer(buffer.length);
+  const view = new Uint8Array(ab);
+  for (let i = 0; i &lt; buffer.length; ++i) {
+    view[i] = buffer[i];
+  }
+  return ab;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+  Request.get({ url, encoding: null }, (err, response, imgBuffer) =&gt; {
+
+    if (err || response.statusCode !== 200) {
+      callback();
+      return console.log(err || new Error('response code for ' + url + ' was ' + response.statusCode));
+    }
+
+    const icoBuffer = Util.<span class="apidocCodeKeywordSpan">toArrayBuffer</span>(imgBuffer);
+
+    try {
+      IcoJS.parse(icoBuffer).then((imgs) =&gt; {
+
+        const sizes = imgs.map((img) =&gt; {
+
+const dim = ImgSize(Util.toBuffer(img.buffer));
+...</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.manifestation.utils.toBuffer" id="apidoc.element.manifestation.utils.toBuffer">
+        function <span class="apidocSignatureSpan">manifestation.utils.</span>toBuffer
+        <span class="apidocSignatureSpan">(ab)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">(ab) =&gt; {
+
+  const buffer = new Buffer(ab.byteLength);
+  const view = new Uint8Array(ab);
+  for (let i = 0; i &lt; buffer.length; ++i) {
+    buffer[i] = view[i];
+  }
+  return buffer;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+    const icoBuffer = Util.toArrayBuffer(imgBuffer);
+
+    try {
+      IcoJS.parse(icoBuffer).then((imgs) =&gt; {
+
+const sizes = imgs.map((img) =&gt; {
+
+  const dim = ImgSize(Util.<span class="apidocCodeKeywordSpan">toBuffer</span>(img.buffer));
+  return dim.width + 'x' + dim.height;
+}).join(' ');
+
+return callback(null, {
+  src: Url.parse(url).path,
+  sizes: sizes
+});
+...</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
+</body></html>
